@@ -1,0 +1,5 @@
+{
+  "name": "AI Trend Foresight",
+  "description": "An application to research and brainstorm trends in Artificial Intelligence using the Future Today Institute's (FTI) strategic foresight funnel. It uses AI to identify signals, analyze them with the CIPHER framework, and outline emerging trends.",
+  "requestFramePermissions": []
+}
