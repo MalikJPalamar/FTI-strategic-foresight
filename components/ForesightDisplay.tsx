@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ForesightReport, Signal, Trend, Scenario, Vision } from '../types';
+import { ForesightReport, Signal, Trend, Scenario, VisionChartData } from '../types';
 import { LinkIcon, LightBulbIcon, SearchIcon, BeakerIcon, FuturesIcon } from './icons';
 import { ScenarioLab } from './ScenarioLab';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -8,13 +8,11 @@ import { LoadingSpinner } from './LoadingSpinner';
 interface ForesightDisplayProps {
   report: ForesightReport;
   scenarios: Scenario[] | null;
-  vision: Vision | null;
+  vision: VisionChartData | null;
   onGenerateScenarios: () => void;
   onGenerateVision: (params: { selectedElements: string[]; userPrompt: string }) => void;
   isGeneratingScenarios: boolean;
   isGeneratingVision: boolean;
-  onEditVision: (prompt: string) => void;
-  isEditingVision: boolean;
   onResetVision: () => void;
 }
 
@@ -79,8 +77,6 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
   onGenerateVision,
   isGeneratingScenarios,
   isGeneratingVision,
-  onEditVision,
-  isEditingVision,
   onResetVision
 }) => {
   return (
@@ -148,8 +144,6 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
           vision={vision}
           onGenerateVision={onGenerateVision}
           isGeneratingVision={isGeneratingVision}
-          onEditVision={onEditVision}
-          isEditingVision={isEditingVision}
           onResetVision={onResetVision}
           onGenerateScenarios={onGenerateScenarios}
           isGeneratingScenarios={isGeneratingScenarios}

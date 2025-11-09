@@ -3,8 +3,8 @@ import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { FramingInput } from './components/FramingInput';
 import { ForesightDisplay } from './components/ForesightDisplay';
-import { generateForesightAnalysis, generateScenarios, generateVision, editVisionImage } from './services/geminiService';
-import { ForesightReport, Scenario, Vision } from './types';
+import { generateForesightAnalysis, generateScenarios, generateVision } from './services/geminiService';
+import { ForesightReport, Scenario, VisionChartData } from './types';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
 const App: React.FC = () => {
@@ -18,9 +18,8 @@ const App: React.FC = () => {
   const [scenarios, setScenarios] = useState<Scenario[] | null>(null);
   const [isGeneratingScenarios, setIsGeneratingScenarios] = useState<boolean>(false);
   
-  const [vision, setVision] = useState<Vision | null>(null);
+  const [vision, setVision] = useState<VisionChartData | null>(null);
   const [isGeneratingVision, setIsGeneratingVision] = useState<boolean>(false);
-  const [isEditingVision, setIsEditingVision] = useState<boolean>(false);
 
 
   const handleGenerate = useCallback(async () => {
@@ -91,26 +90,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleEditVision = useCallback(async (editPrompt: string) => {
-    if (!vision || !editPrompt.trim()) return;
-    setIsEditingVision(true);
-    setError(null);
-    try {
-      const { base64ImageData, mimeType } = vision;
-      const editedImage = await editVisionImage(base64ImageData, mimeType, editPrompt);
-      setVision(prevVision => prevVision ? { ...prevVision, ...editedImage } : null);
-    } catch (e) {
-      console.error(e);
-      if (e instanceof Error) {
-        setError(`Failed to edit image: ${e.message}`);
-      } else {
-        setError("An unknown error occurred while editing the image.");
-      }
-    } finally {
-      setIsEditingVision(false);
-    }
-  }, [vision]);
-
   const handleResetVision = useCallback(() => {
     setVision(null);
   }, []);
@@ -143,8 +122,6 @@ const App: React.FC = () => {
                 onGenerateVision={handleGenerateVision}
                 isGeneratingScenarios={isGeneratingScenarios}
                 isGeneratingVision={isGeneratingVision}
-                onEditVision={handleEditVision}
-                isEditingVision={isEditingVision}
                 onResetVision={handleResetVision}
               />
             </div>

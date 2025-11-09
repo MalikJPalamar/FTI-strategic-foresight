@@ -25,12 +25,23 @@ export interface Scenario {
   implications: string[];
 }
 
-export interface Vision {
-  statement: string;
-  imageUrl: string;
-  base64ImageData: string;
-  mimeType: string;
+export interface VisionChartData {
+  title: string;
+  xAxisLabel: string;
+  yAxisLabel: string;
+  preferredFuture: {
+    label: string;
+    x: number; // A value between 0 and 100
+    y: number; // A value between 0 and 100
+  };
+  quadrants: {
+    topLeft: string;
+    topRight: string;
+    bottomLeft: string;
+    bottomRight: string;
+  };
 }
+
 
 export interface ForesightReport {
   strategicQuestion: string;

@@ -1,12 +1,6 @@
 
-import { GoogleGenAI, Modality } from "@google/genai";
-import { ForesightReport, Trend, Scenario, Vision } from '../types';
-
-export interface EditedImage {
-    imageUrl: string;
-    base64ImageData: string;
-    mimeType: string;
-}
+import { GoogleGenAI, Type } from "@google/genai";
+import { ForesightReport, Trend, Scenario, VisionChartData } from '../types';
 
 const buildPrompt = (strategicQuestion: string): string => {
   return `You are a world-class senior strategic foresight analyst co-pilot at the Centaurion Institute, reporting directly to Malik Palamar Lead Futurist. Your expertise lies in identifying non-obvious, weak signals at the fringe and synthesizing them into actionable, data-driven insights. You are rigorous, evidence-based, and allergic to mainstream hype.
@@ -241,7 +235,7 @@ Your entire response MUST be a single, valid JSON array containing exactly three
 };
 
 
-export const generateVision = async (selectedElements: string[], userPrompt: string): Promise<Vision> => {
+export const generateVision = async (selectedElements: string[], userPrompt: string): Promise<VisionChartData> => {
     if (!process.env.API_KEY) {
         throw new Error("API_KEY environment variable not set");
     }
@@ -249,138 +243,74 @@ export const generateVision = async (selectedElements: string[], userPrompt: str
     
     const elementsString = selectedElements.map(e => `- ${e}`).join('\n');
 
-    try {
-        // Step 1: Generate the vision statement using a text model.
-        const statementPrompt = `
-You are a visionary strategist. Your task is to synthesize a collection of desirable future concepts into a single, compelling vision statement.
+    const visionPrompt = `
+You are a data-driven strategic foresight analyst. Your task is to synthesize a collection of desirable future concepts into a quantitative, action-oriented 2x2 matrix visualization. This matrix will help leaders understand the key tensions and trade-offs in their preferred future.
 
 **Input - Desirable Future Elements:**
 ${elementsString}
 
-${userPrompt ? `**User Guidance for the Vision:**\n${userPrompt}` : ''}
+${userPrompt ? `**User Guidance for the Chart's Theme:**\n${userPrompt}` : ''}
 
 **Task:**
-Synthesize the desirable future elements above, keeping the user's guidance in mind if provided, into a single, short, inspiring, and powerful vision statement (2-3 sentences). This statement should encapsulate the core essence of the preferred future these elements describe. Your output should be ONLY the vision statement text, with no extra formatting, labels, or explanations.
+Based on the inputs, define the parameters for a 2x2 matrix. The axes should represent two critical, independent uncertainties or dimensions that emerge from the selected elements. The 'Preferred Future' should be plotted as a point within one of the four quadrants.
+
+Your entire output must be a single, valid JSON object matching the provided schema. Do not include any other text or markdown.
 `;
 
-        const statementResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: statementPrompt,
-        });
-
-        const statement = statementResponse.text?.trim();
-
-        if (!statement) {
-            if (statementResponse.promptFeedback?.blockReason) {
-                throw new Error(`Vision statement generation was blocked: ${statementResponse.promptFeedback.blockReason}. Please adjust your query.`);
-            }
-            throw new Error("The AI failed to generate a vision statement.");
-        }
-
-        // Step 2: Generate the image using the vision statement.
-        const imagePrompt = `
-Generate a symbolic, abstract, and highly aesthetic image that visually represents the following vision. The image should be inspiring and evoke feelings of optimism, innovation, and progress. It should not be a literal depiction but a beautiful, metaphorical interpretation.
-
-**Vision:** "${statement}"
-
-${userPrompt ? `**User's Creative Direction for Image Style:** "${userPrompt}"` : ''}
-`;
-
-        const imageResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: { parts: [{ text: imagePrompt }] },
-            config: {
-                responseModalities: [Modality.IMAGE],
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING, description: "A concise, insightful title for the 2x2 matrix." },
+            xAxisLabel: { type: Type.STRING, description: "The label for the X-axis (horizontal), representing a key dimension or uncertainty." },
+            yAxisLabel: { type: Type.STRING, description: "The label for the Y-axis (vertical), representing a second key dimension or uncertainty." },
+            preferredFuture: {
+                type: Type.OBJECT,
+                properties: {
+                    label: { type: Type.STRING, description: "A short, compelling name for the plotted preferred future." },
+                    x: { type: Type.NUMBER, description: "A numeric value between 0 and 100 for the X-axis position." },
+                    y: { type: Type.NUMBER, description: "A numeric value between 0 and 100 for the Y-axis position." },
+                },
+                required: ["label", "x", "y"],
             },
-        });
-
-        let imageUrl = '';
-        let base64ImageData = '';
-        let mimeType = '';
-
-        const parts = imageResponse.candidates?.[0]?.content?.parts;
-        if (parts) {
-            for (const part of parts) {
-                if (part.inlineData) {
-                    base64ImageData = part.inlineData.data;
-                    mimeType = part.inlineData.mimeType;
-                    imageUrl = `data:${mimeType};base64,${base64ImageData}`;
-                    break; // Found the image
-                }
-            }
-        }
-
-        if (!imageUrl) {
-            if (imageResponse.promptFeedback?.blockReason) {
-                throw new Error(`Vision image generation was blocked: ${imageResponse.promptFeedback.blockReason}. Please adjust your query.`);
-            }
-            throw new Error("The AI failed to generate a vision image.");
-        }
-        
-        return { statement, imageUrl, base64ImageData, mimeType };
-
-    } catch (error) {
-        console.error("Error generating vision:", error);
-        if (error instanceof Error) {
-            throw error;
-        }
-        throw new Error("An error occurred while generating the vision and image.");
-    }
-};
-
-export const editVisionImage = async (
-    base64ImageData: string,
-    mimeType: string,
-    prompt: string
-): Promise<EditedImage> => {
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set");
-    }
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            quadrants: {
+                type: Type.OBJECT,
+                properties: {
+                    topLeft: { type: Type.STRING, description: "A descriptive name for the top-left quadrant." },
+                    topRight: { type: Type.STRING, description: "A descriptive name for the top-right quadrant." },
+                    bottomLeft: { type: Type.STRING, description: "A descriptive name for the bottom-left quadrant." },
+                    bottomRight: { type: Type.STRING, description: "A descriptive name for the bottom-right quadrant." },
+                },
+                required: ["topLeft", "topRight", "bottomLeft", "bottomRight"],
+            },
+        },
+        required: ["title", "xAxisLabel", "yAxisLabel", "preferredFuture", "quadrants"],
+    };
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: {
-                parts: [
-                    { inlineData: { data: base64ImageData, mimeType: mimeType } },
-                    { text: prompt },
-                ],
-            },
+            model: 'gemini-2.5-flash',
+            contents: visionPrompt,
             config: {
-                responseModalities: [Modality.IMAGE],
+                responseMimeType: "application/json",
+                responseSchema: schema,
             },
         });
 
-        let newImageUrl = '';
-        let newBase64ImageData = '';
-        let newMimeType = '';
-
-        const parts = response.candidates?.[0]?.content?.parts;
-        if (parts) {
-            for (const part of parts) {
-                if (part.inlineData) {
-                    newBase64ImageData = part.inlineData.data;
-                    newMimeType = part.inlineData.mimeType;
-                    newImageUrl = `data:${newMimeType};base64,${newBase64ImageData}`;
-                    break;
-                }
+        const text = response.text;
+        if (!text) {
+            if (response.promptFeedback?.blockReason) {
+                throw new Error(`Vision chart generation was blocked: ${response.promptFeedback.blockReason}. Please adjust your query.`);
             }
+            throw new Error("The AI failed to generate vision chart data.");
         }
         
-        if (!newImageUrl) {
-            if (response.promptFeedback?.blockReason) {
-                throw new Error(`Image editing was blocked: ${response.promptFeedback.blockReason}.`);
-            }
-            throw new Error("The AI failed to return an edited image.");
-        }
+        return parseJsonResponse<VisionChartData>(text);
 
-        return { imageUrl: newImageUrl, base64ImageData: newBase64ImageData, mimeType: newMimeType };
     } catch (error) {
-        console.error("Error editing vision image:", error);
+        console.error("Error generating vision chart:", error);
         if (error instanceof Error) {
             throw error;
         }
-        throw new Error("An unknown error occurred while editing the image.");
+        throw new Error("An error occurred while generating the vision chart.");
     }
 };
