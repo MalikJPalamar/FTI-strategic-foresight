@@ -49,3 +49,22 @@ export interface ForesightReport {
   cipherAnalysis: CipherAnalysis;
   emergingTrends: Trend[];
 }
+
+// Types for the new Strategic Action Plan
+export interface KeyInitiative {
+  initiative: string;
+  description: string;
+  first_steps: string[];
+}
+
+export interface StrategicImperative {
+  imperative: string;
+  description: string;
+  key_initiatives: KeyInitiative[];
+}
+
+export interface StrategicPlan {
+  title: string;
+  strategic_imperatives: StrategicImperative[];
+  early_warning_indicators: string[];
+}

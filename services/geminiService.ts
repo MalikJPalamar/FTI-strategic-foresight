@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { ForesightReport, Trend, Scenario, VisionChartData } from '../types';
+import { ForesightReport, Trend, Scenario, VisionChartData, StrategicPlan } from '../types';
 
 const buildPrompt = (strategicQuestion: string): string => {
   return `You are a world-class senior strategic foresight analyst co-pilot at the Centaurion Institute, reporting directly to Malik Palamar Lead Futurist. Your expertise lies in identifying non-obvious, weak signals at the fringe and synthesizing them into actionable, data-driven insights. You are rigorous, evidence-based, and allergic to mainstream hype.
@@ -312,5 +312,105 @@ Your entire output must be a single, valid JSON object matching the provided sch
             throw error;
         }
         throw new Error("An error occurred while generating the vision chart.");
+    }
+};
+
+export const generateStrategicPlan = async (vision: VisionChartData, trends: Trend[]): Promise<StrategicPlan> => {
+    if (!process.env.API_KEY) {
+        throw new Error("API_KEY environment variable not set");
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const trendsString = trends.map(t => `**${t.trend}:** ${t.description}`).join('\n');
+    const visionString = JSON.stringify(vision, null, 2);
+
+    const prompt = `
+You are a world-class Chief Strategy Officer. Your task is to convert a high-level strategic vision and a set of emerging trends into a concrete, actionable strategic plan.
+
+**CONTEXT:**
+The organization has completed a foresight exercise, resulting in the following key artifacts:
+
+1.  **Emerging Trends:**
+    ${trendsString}
+
+2.  **Preferred Future Vision (2x2 Matrix):**
+    This matrix defines the desired future state we want to achieve.
+    \`\`\`json
+    ${visionString}
+    \`\`\`
+    The "preferredFuture.label" within the matrix represents our primary strategic goal, positioned according to the key dimensions defined by the X and Y axes.
+
+**YOUR TASK:**
+Based on the provided trends and the preferred future vision, create a high-level strategic action plan. This plan should outline the necessary steps to navigate from the current state (implied by the trends) towards the desired future state (defined by the vision).
+
+Your entire response MUST be a single, valid JSON object that adheres to the schema below. Do not add any commentary or text outside the JSON structure.
+
+`;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING, description: `A compelling title for the strategic action plan, inspired by the vision title: "${vision.title}".` },
+            strategic_imperatives: {
+                type: Type.ARRAY,
+                description: "A list of 2-3 high-level, critical goals required to achieve the preferred future.",
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        imperative: { type: Type.STRING, description: "The concise name of the strategic imperative (e.g., 'Cultivate Human-AI Symbiosis')." },
+                        description: { type: Type.STRING, description: "A 1-2 sentence explanation of why this imperative is critical." },
+                        key_initiatives: {
+                            type: Type.ARRAY,
+                            description: "A list of 2-3 concrete projects or programs to execute this imperative.",
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    initiative: { type: Type.STRING, description: "The name of the specific initiative (e.g., 'Launch Collaborative Intelligence Platform')." },
+                                    description: { type: Type.STRING, description: "A brief description of what this initiative entails." },
+                                    first_steps: {
+                                        type: Type.ARRAY,
+                                        description: "A list of 2-3 tangible, immediate next actions for this initiative.",
+                                        items: { type: Type.STRING }
+                                    }
+                                },
+                                required: ["initiative", "description", "first_steps"]
+                            }
+                        }
+                    },
+                    required: ["imperative", "description", "key_initiatives"]
+                }
+            },
+            early_warning_indicators: {
+                type: Type.ARRAY,
+                description: "A list of 4-5 signals or metrics to monitor. These indicate if the future is diverging from the plan or if key assumptions are proving false.",
+                items: { type: Type.STRING }
+            }
+        },
+        required: ["title", "strategic_imperatives", "early_warning_indicators"]
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            },
+        });
+
+        const text = response.text;
+        if (!text) {
+            throw new Error("The AI failed to generate a strategic plan.");
+        }
+        
+        return parseJsonResponse<StrategicPlan>(text);
+
+    } catch (error) {
+        console.error("Error generating strategic plan:", error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error("An error occurred while generating the strategic plan.");
     }
 };

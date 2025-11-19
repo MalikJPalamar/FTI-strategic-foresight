@@ -13,7 +13,7 @@ export const FramingInput: React.FC<FramingInputProps> = ({ value, onChange, onG
   return (
     <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 shadow-2xl shadow-black/30">
       <label htmlFor="strategic-question" className="block text-sm font-medium text-cyan-400 mb-2">
-        Step 1: Frame Your Strategic Question
+        Step 1: Frame Your Strategic Question (Converging)
       </label>
       <textarea
         id="strategic-question"

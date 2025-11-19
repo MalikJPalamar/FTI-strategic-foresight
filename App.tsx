@@ -3,8 +3,8 @@ import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { FramingInput } from './components/FramingInput';
 import { ForesightDisplay } from './components/ForesightDisplay';
-import { generateForesightAnalysis, generateScenarios, generateVision } from './services/geminiService';
-import { ForesightReport, Scenario, VisionChartData } from './types';
+import { generateForesightAnalysis, generateScenarios, generateVision, generateStrategicPlan } from './services/geminiService';
+import { ForesightReport, Scenario, VisionChartData, StrategicPlan } from './types';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
 const App: React.FC = () => {
@@ -21,6 +21,9 @@ const App: React.FC = () => {
   const [vision, setVision] = useState<VisionChartData | null>(null);
   const [isGeneratingVision, setIsGeneratingVision] = useState<boolean>(false);
 
+  const [strategicPlan, setStrategicPlan] = useState<StrategicPlan | null>(null);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
+
 
   const handleGenerate = useCallback(async () => {
     if (!strategicQuestion.trim()) {
@@ -32,6 +35,7 @@ const App: React.FC = () => {
     setForesightReport(null);
     setScenarios(null);
     setVision(null);
+    setStrategicPlan(null);
 
     try {
       const { report } = await generateForesightAnalysis(strategicQuestion);
@@ -52,7 +56,8 @@ const App: React.FC = () => {
     if (!foresightReport?.emergingTrends) return;
     setIsGeneratingScenarios(true);
     setError(null);
-    setVision(null); // Reset vision when generating new scenarios
+    setVision(null); 
+    setStrategicPlan(null);
     try {
       const generatedScenarios = await generateScenarios(foresightReport.emergingTrends);
       setScenarios(generatedScenarios);
@@ -75,6 +80,7 @@ const App: React.FC = () => {
     }
     setIsGeneratingVision(true);
     setError(null);
+    setStrategicPlan(null);
     try {
       const generatedVision = await generateVision(selectedElements, userPrompt);
       setVision(generatedVision);
@@ -90,8 +96,29 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const handleGenerateStrategicPlan = useCallback(async () => {
+    if (!vision || !foresightReport?.emergingTrends) return;
+    setIsGeneratingPlan(true);
+    setError(null);
+    try {
+      const plan = await generateStrategicPlan(vision, foresightReport.emergingTrends);
+      setStrategicPlan(plan);
+    } catch (e) {
+       console.error(e);
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("An error occurred while generating the strategic plan.");
+      }
+    } finally {
+      setIsGeneratingPlan(false);
+    }
+  }, [vision, foresightReport]);
+
+
   const handleResetVision = useCallback(() => {
     setVision(null);
+    setStrategicPlan(null);
   }, []);
 
   return (
@@ -118,10 +145,13 @@ const App: React.FC = () => {
                 report={foresightReport}
                 scenarios={scenarios}
                 vision={vision}
+                strategicPlan={strategicPlan}
                 onGenerateScenarios={handleGenerateScenarios}
                 onGenerateVision={handleGenerateVision}
+                onGenerateStrategicPlan={handleGenerateStrategicPlan}
                 isGeneratingScenarios={isGeneratingScenarios}
                 isGeneratingVision={isGeneratingVision}
+                isGeneratingPlan={isGeneratingPlan}
                 onResetVision={handleResetVision}
               />
             </div>

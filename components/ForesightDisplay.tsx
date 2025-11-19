@@ -1,18 +1,22 @@
 
 import React from 'react';
-import { ForesightReport, Signal, Trend, Scenario, VisionChartData } from '../types';
-import { LinkIcon, LightBulbIcon, SearchIcon, BeakerIcon, FuturesIcon } from './icons';
+import { ForesightReport, Signal, Trend, Scenario, VisionChartData, StrategicPlan } from '../types';
+import { LinkIcon, LightBulbIcon, SearchIcon, BeakerIcon, FuturesIcon, SparklesIcon } from './icons';
 import { ScenarioLab } from './ScenarioLab';
 import { LoadingSpinner } from './LoadingSpinner';
+import { ActionPlanner } from './ActionPlanner';
 
 interface ForesightDisplayProps {
   report: ForesightReport;
   scenarios: Scenario[] | null;
   vision: VisionChartData | null;
+  strategicPlan: StrategicPlan | null;
   onGenerateScenarios: () => void;
   onGenerateVision: (params: { selectedElements: string[]; userPrompt: string }) => void;
+  onGenerateStrategicPlan: () => void;
   isGeneratingScenarios: boolean;
   isGeneratingVision: boolean;
+  isGeneratingPlan: boolean;
   onResetVision: () => void;
 }
 
@@ -73,10 +77,13 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
   report, 
   scenarios, 
   vision,
+  strategicPlan,
   onGenerateScenarios, 
   onGenerateVision,
+  onGenerateStrategicPlan,
   isGeneratingScenarios,
   isGeneratingVision,
+  isGeneratingPlan,
   onResetVision
 }) => {
   return (
@@ -84,7 +91,7 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
       
       {/* Phase 1: Analysis */}
       <section>
-        <h2 className="text-2xl font-bold text-gray-200 border-b-2 border-cyan-500/30 pb-2 mb-6">Emerging Macro Trends</h2>
+        <h2 className="text-2xl font-bold text-gray-200 border-b-2 border-cyan-500/30 pb-2 mb-6">Step 4: Synthesize Emerging Trends (Converging)</h2>
         <div className="space-y-6">
           {report.emergingTrends.map((trend, index) => (
             <TrendCard key={index} trend={trend} />
@@ -95,7 +102,7 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
       <section>
         <h2 className="text-2xl font-bold text-gray-200 border-b-2 border-cyan-500/30 pb-2 mb-6 flex items-center gap-3">
           <BeakerIcon className="w-7 h-7" />
-          CIPHER Analysis
+          Step 3: Analyze Signals (Converging)
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 bg-gray-900/50 p-6 rounded-xl border border-gray-800">
           <CipherSection title="Contradictions" items={report.cipherAnalysis.contradictions} />
@@ -110,7 +117,7 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
       <section>
         <h2 className="text-2xl font-bold text-gray-200 border-b-2 border-cyan-500/30 pb-2 mb-6 flex items-center gap-3">
           <SearchIcon className="w-7 h-7" />
-          Discovered Signals
+          Step 2: Discover Weak Signals (Diverging)
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {report.discoveredSignals.map((signal, index) => (
@@ -130,7 +137,7 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
               className="inline-flex items-center gap-3 px-8 py-4 border border-transparent text-lg font-medium rounded-md shadow-sm text-black bg-cyan-400 hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all transform hover:scale-105"
             >
               <FuturesIcon className="w-6 h-6" />
-              Step 4: Generate Future Scenarios
+              Step 5: Generate Future Scenarios (Diverging)
             </button>
         </div>
       )}
@@ -148,6 +155,28 @@ export const ForesightDisplay: React.FC<ForesightDisplayProps> = ({
           onGenerateScenarios={onGenerateScenarios}
           isGeneratingScenarios={isGeneratingScenarios}
         />
+      )}
+
+      {/* Phase 3: Strategy & Action */}
+      {vision && !strategicPlan && !isGeneratingPlan && (
+        <div className="text-center mt-12 animate-fade-in">
+          <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-700 to-transparent mb-12"></div>
+           <button
+              onClick={onGenerateStrategicPlan}
+              className="inline-flex items-center gap-3 px-8 py-4 border border-transparent text-lg font-medium rounded-md shadow-sm text-black bg-cyan-400 hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+            >
+              <SparklesIcon className="w-6 h-6" />
+              Step 7: Develop Strategic Action Plan (Converging)
+            </button>
+        </div>
+      )}
+
+      {isGeneratingPlan && <LoadingSpinner />}
+
+      {strategicPlan && (
+        <div className="mt-12 animate-fade-in">
+          <ActionPlanner plan={strategicPlan} />
+        </div>
       )}
     </div>
   );

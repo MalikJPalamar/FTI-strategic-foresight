@@ -63,7 +63,7 @@ export const ScenarioLab: React.FC<ScenarioLabProps> = ({
         <section className="space-y-12">
             <div>
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b-2 border-cyan-500/30 pb-2 mb-6 gap-4">
-                    <h2 className="text-2xl font-bold text-gray-200">Step 4: Scenario Lab</h2>
+                    <h2 className="text-2xl font-bold text-gray-200">Step 5: Scenario Lab (Diverging)</h2>
                      <button
                         onClick={onGenerateScenarios}
                         disabled={isGeneratingScenarios}
@@ -95,7 +95,7 @@ export const ScenarioLab: React.FC<ScenarioLabProps> = ({
             <div>
                  <h2 className="text-2xl font-bold text-gray-200 border-b-2 border-cyan-500/30 pb-2 mb-6 flex items-center gap-3">
                     <ChartQuadrantIcon className="w-7 h-7" />
-                    Step 5: {vision ? 'Your Strategic Matrix' : 'Vision Builder'}
+                    Step 6: {vision ? 'Your Strategic Matrix' : 'Vision Builder'} (Converging)
                 </h2>
                 
                 {vision ? (
