@@ -68,6 +68,24 @@ export const ChartQuadrantIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props
     </svg>
 );
 
+export const RadarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M19.07 4.93A10 10 0 0 0 6.99 3.34" />
+        <path d="M4 6h.01" />
+        <path d="M2.29 9.62A10 10 0 0 0 3.34 17.01" />
+        <path d="M7.6 20.71A10 10 0 0 0 17.01 20.66" />
+        <path d="M22 12c0 6-10 9-10 9s-10-3-10-9 10-9 10-9 10 3 10 9Z" />
+        <path d="M12 12v.01" />
+    </svg>
+);
+
+export const DatabaseIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <ellipse cx="12" cy="5" rx="9" ry="3" />
+        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+    </svg>
+);
 export const PencilIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -90,16 +108,5 @@ export const ChecklistIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) =>
         <path d="M5 7.5h3" />
         <path d="M5 14.5h3" />
         <path d="M3 3h18v18H3z" />
-    </svg>
-);
-
-export const RadarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-        <path d="M19.07 4.93A10 10 0 0 0 6.99 3.34" />
-        <path d="M4 6h.01" />
-        <path d="M2.29 9.62A10 10 0 0 0 3.34 17.01" />
-        <path d="M7.6 20.71A10 10 0 0 0 17.01 20.66" />
-        <path d="M22 12c0 6-10 9-10 9s-10-3-10-9 10-9 10-9 10 3 10 9Z" />
-        <path d="M12 12v.01" />
     </svg>
 );

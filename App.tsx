@@ -1,16 +1,20 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { FramingInput } from './components/FramingInput';
 import { ForesightDisplay } from './components/ForesightDisplay';
 import { generateForesightAnalysis, generateScenarios, generateVision, generateStrategicPlan } from './services/geminiService';
-import { ForesightReport, Scenario, VisionChartData, StrategicPlan } from './types';
+import { ForesightReport, Scenario, VisionChartData, StrategicPlan, AIModel } from './types';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
+const STORAGE_KEY = 'centaurion_foresight_state_v1';
+
 const App: React.FC = () => {
+  // State
   const [strategicQuestion, setStrategicQuestion] = useState<string>(
-    "What are the emerging technological, cultural, and economic trends shaping the future of the remote and hybrid workforce, and what are their potential second- and third-order impacts on business operations, urban planning, and employee well-being?"
+    "What are the emerging technological, cultural, and economic trends shaping the future of the remote and hybrid workforce?"
   );
+  const [model, setModel] = useState<AIModel>('gemini-2.5-flash');
+  
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [foresightReport, setForesightReport] = useState<ForesightReport | null>(null);
@@ -24,6 +28,50 @@ const App: React.FC = () => {
   const [strategicPlan, setStrategicPlan] = useState<StrategicPlan | null>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
 
+  // Data Persistence: Load
+  useEffect(() => {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.strategicQuestion) setStrategicQuestion(parsed.strategicQuestion);
+        if (parsed.model) setModel(parsed.model);
+        if (parsed.foresightReport) setForesightReport(parsed.foresightReport);
+        if (parsed.scenarios) setScenarios(parsed.scenarios);
+        if (parsed.vision) setVision(parsed.vision);
+        if (parsed.strategicPlan) setStrategicPlan(parsed.strategicPlan);
+      } catch (e) {
+        console.error("Failed to load session:", e);
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, []);
+
+  // Data Persistence: Save
+  useEffect(() => {
+    const stateToSave = {
+      strategicQuestion,
+      model,
+      foresightReport,
+      scenarios,
+      vision,
+      strategicPlan
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [strategicQuestion, model, foresightReport, scenarios, vision, strategicPlan]);
+
+  // Reset Session
+  const handleResetSession = useCallback(() => {
+    if (window.confirm("Are you sure you want to clear your entire research session?")) {
+      localStorage.removeItem(STORAGE_KEY);
+      setForesightReport(null);
+      setScenarios(null);
+      setVision(null);
+      setStrategicPlan(null);
+      setStrategicQuestion("");
+      window.location.reload();
+    }
+  }, []);
 
   const handleGenerate = useCallback(async () => {
     if (!strategicQuestion.trim()) {
@@ -38,7 +86,7 @@ const App: React.FC = () => {
     setStrategicPlan(null);
 
     try {
-      const { report } = await generateForesightAnalysis(strategicQuestion);
+      const { report } = await generateForesightAnalysis(strategicQuestion, model);
       setForesightReport(report);
     } catch (e) {
       console.error(e);
@@ -50,7 +98,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [strategicQuestion]);
+  }, [strategicQuestion, model]);
 
   const handleGenerateScenarios = useCallback(async () => {
     if (!foresightReport?.emergingTrends) return;
@@ -59,7 +107,7 @@ const App: React.FC = () => {
     setVision(null); 
     setStrategicPlan(null);
     try {
-      const generatedScenarios = await generateScenarios(foresightReport.emergingTrends);
+      const generatedScenarios = await generateScenarios(foresightReport.emergingTrends, model);
       setScenarios(generatedScenarios);
     } catch (e) {
       console.error(e);
@@ -71,7 +119,7 @@ const App: React.FC = () => {
     } finally {
       setIsGeneratingScenarios(false);
     }
-  }, [foresightReport]);
+  }, [foresightReport, model]);
 
   const handleGenerateVision = useCallback(async ({ selectedElements, userPrompt }: { selectedElements: string[]; userPrompt: string }) => {
     if (selectedElements.length === 0) {
@@ -82,7 +130,7 @@ const App: React.FC = () => {
     setError(null);
     setStrategicPlan(null);
     try {
-      const generatedVision = await generateVision(selectedElements, userPrompt);
+      const generatedVision = await generateVision(selectedElements, userPrompt, model);
       setVision(generatedVision);
     } catch (e) {
       console.error(e);
@@ -94,14 +142,14 @@ const App: React.FC = () => {
     } finally {
       setIsGeneratingVision(false);
     }
-  }, []);
+  }, [model]);
 
   const handleGenerateStrategicPlan = useCallback(async () => {
     if (!vision || !foresightReport?.emergingTrends) return;
     setIsGeneratingPlan(true);
     setError(null);
     try {
-      const plan = await generateStrategicPlan(vision, foresightReport.emergingTrends);
+      const plan = await generateStrategicPlan(vision, foresightReport.emergingTrends, model);
       setStrategicPlan(plan);
     } catch (e) {
        console.error(e);
@@ -113,7 +161,7 @@ const App: React.FC = () => {
     } finally {
       setIsGeneratingPlan(false);
     }
-  }, [vision, foresightReport]);
+  }, [vision, foresightReport, model]);
 
 
   const handleResetVision = useCallback(() => {
@@ -122,12 +170,18 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-gray-200 font-sans">
-      <div className="absolute top-0 left-0 w-full h-full bg-grid-gray-900/[0.2] z-0"></div>
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-5xl">
-        <Header />
+    <div className="min-h-screen bg-[#030712] text-gray-200 font-sans relative overflow-x-hidden selection:bg-cyan-500/30">
+      {/* Ambient Lighting / Orbs */}
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      
+      {/* Grid Overlay */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#4f4f4f1a_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f1a_1px,transparent_1px)] bg-[size:4rem_4rem] z-0 pointer-events-none mask-gradient"></div>
 
-        <main className="mt-12">
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
+        <Header model={model} setModel={setModel} onReset={handleResetSession} />
+
+        <main className="mt-8 pb-20">
           <FramingInput
             value={strategicQuestion}
             onChange={(e) => setStrategicQuestion(e.target.value)}
@@ -135,12 +189,19 @@ const App: React.FC = () => {
             isLoading={isLoading}
           />
           
-          {error && <div className="mt-6 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-300">{error}</div>}
+          {error && (
+            <div className="mt-6 p-4 bg-red-500/10 backdrop-blur-md border border-red-500/50 rounded-xl text-red-200 shadow-lg shadow-red-900/20 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                {error}
+              </div>
+            </div>
+          )}
           
           {isLoading && <LoadingSpinner />}
           
           {foresightReport && (
-            <div className="mt-12 animate-fade-in">
+            <div className="mt-16 animate-fade-in">
               <ForesightDisplay 
                 report={foresightReport}
                 scenarios={scenarios}
@@ -153,6 +214,7 @@ const App: React.FC = () => {
                 isGeneratingVision={isGeneratingVision}
                 isGeneratingPlan={isGeneratingPlan}
                 onResetVision={handleResetVision}
+                model={model}
               />
             </div>
           )}

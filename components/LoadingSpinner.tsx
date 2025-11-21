@@ -1,12 +1,11 @@
-
 import React from 'react';
 
 const loadingMessages = [
-  "Scanning the horizon for weak signals...",
-  "Applying the CIPHER framework...",
-  "Connecting the dots and identifying patterns...",
-  "Analyzing fringe sources for disruptions...",
-  "Synthesizing data into emerging trends...",
+  "INITIALIZING SENSOR ARRAY...",
+  "SCANNING FRINGE DATA SOURCES...",
+  "DECRYPTING SIGNAL PATTERNS...",
+  "APPLYING CIPHER LOGIC GATES...",
+  "SYNTHESIZING MACRO TRENDS...",
 ];
 
 export const LoadingSpinner: React.FC = () => {
@@ -19,34 +18,31 @@ export const LoadingSpinner: React.FC = () => {
         const nextIndex = (currentIndex + 1) % loadingMessages.length;
         return loadingMessages[nextIndex];
       });
-    }, 3000); // Change message every 3 seconds
+    }, 2500);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="mt-12 flex flex-col items-center justify-center gap-4 p-8 bg-gray-900/30 rounded-lg">
-      <svg
-        className="animate-spin h-10 w-10 text-cyan-400"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        ></circle>
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        ></path>
-      </svg>
-      <p className="text-gray-400 transition-opacity duration-500">{message}</p>
+    <div className="mt-20 flex flex-col items-center justify-center gap-6 animate-fade-in">
+      <div className="relative w-24 h-24">
+         {/* Radar Rings */}
+        <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-full animate-[ping_3s_linear_infinite]"></div>
+        <div className="absolute inset-4 border-2 border-purple-500/30 rounded-full animate-[ping_3s_linear_infinite_1s]"></div>
+        
+        {/* Center Core */}
+        <div className="absolute inset-0 m-auto w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_15px_cyan]"></div>
+        
+        {/* Rotating Scanner */}
+        <div className="absolute inset-0 w-full h-full animate-spin [animation-duration:4s]">
+             <div className="w-1/2 h-full bg-gradient-to-l from-cyan-500/20 to-transparent rounded-l-full origin-right border-r border-cyan-500/50 transform rotate-180"></div>
+        </div>
+      </div>
+      
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-cyan-400 font-mono text-sm tracking-widest uppercase animate-pulse">{message}</p>
+        <p className="text-[10px] text-gray-600 font-mono">CENTURION ENGINE V1.0</p>
+      </div>
     </div>
   );
 };

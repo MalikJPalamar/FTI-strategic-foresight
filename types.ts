@@ -1,17 +1,43 @@
 
+export type MacroSource = 
+  | 'Wealth Distribution' 
+  | 'Education' 
+  | 'Infrastructure' 
+  | 'Government' 
+  | 'Geopolitics' 
+  | 'Economy' 
+  | 'Public Health' 
+  | 'Demographics' 
+  | 'Environment' 
+  | 'Media & Telecommunications' 
+  | 'Technology';
+
 export interface Signal {
-  signal: string;
+  id: string;
+  headline: string;
+  description: string;
   sourceTitle: string;
   sourceUri: string;
+  macroSource: MacroSource;
+  relevancyScore: number; // 0-100
+  confidenceScore: number; // 0-100 (Based on source credibility)
+  velocity: 'Linear' | 'Exponential' | 'Chaotic';
 }
 
+export interface CipherItem {
+  pattern: string;
+  description: string;
+}
+
+export type CipherEntry = string | CipherItem;
+
 export interface CipherAnalysis {
-  contradictions: string[];
-  inflections: string[];
-  practices: string[];
-  hacks: string[];
-  extremes: string[];
-  rarities: string[];
+  contradictions: CipherEntry[];
+  inflections: CipherEntry[];
+  practices: CipherEntry[];
+  hacks: CipherEntry[];
+  extremes: CipherEntry[];
+  rarities: CipherEntry[];
 }
 
 export interface Trend {
@@ -42,7 +68,6 @@ export interface VisionChartData {
   };
 }
 
-
 export interface ForesightReport {
   strategicQuestion: string;
   discoveredSignals: Signal[];
@@ -50,7 +75,6 @@ export interface ForesightReport {
   emergingTrends: Trend[];
 }
 
-// Types for the new Strategic Action Plan
 export interface KeyInitiative {
   initiative: string;
   description: string;
@@ -68,3 +92,10 @@ export interface StrategicPlan {
   strategic_imperatives: StrategicImperative[];
   early_warning_indicators: string[];
 }
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export type AIModel = 'gemini-2.5-flash' | 'gemini-3-pro-preview';
